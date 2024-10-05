@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>我的谷歌地图</title>
+    <style>
+        #map {
+            height: 400px;  /* 设置地图高度 */
+            width: 100%;    /* 设置地图宽度 */
+        }
+    </style>
+</head>
+<body>
+    <h3>我的谷歌地图</h3>
+    <div id="map"></div>
+    <script>
+        function initMap() {
+            // 创建地图对象
+            var map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 8, // 设置缩放级别
+                center: { lat: -34.397, lng: 150.644 } // 设置地图中心点
+            });
+        }
+    </script>
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap">
+    </script>
+</body>
+</html>

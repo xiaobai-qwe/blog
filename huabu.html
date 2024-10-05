@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>画布仓库示例</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        canvas {
+            border: 1px solid #000;
+            margin-bottom: 10px;
+        }
+        .gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .thumbnail {
+            position: relative;
+            margin: 5px;
+        }
+        .thumbnail img {
+            width: 100px;
+            height: 75px;
+            border: 1px solid #ccc;
+        }
+        .delete-btn {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: red;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="myCanvas" width="800" height="600"></canvas>
+    <button id="saveBtn">保存</button>
+    <button id="clearBtn">清除</button>
+
+    <div class="gallery" id="gallery"></div>
+
+    <script>
+        var canvas = document.getElementById('myCanvas');
+        var context = canvas.getContext('2d');
+        var painting = false;
+
+        function startPosition(e) {
+            painting = true;
+            draw(e);
+        }
+
+        function endPosition() {
+            painting = false;
+            context.beginPath();
+        }
+
+        function draw(e) {
+            if (!painting) return;
+
+            context.strokeStyle = '#000'; 
+            context.lineWidth = 5;
+
+            var rect = canvas.getBoundingClientRect();
+            var x = e.clientX - rect.left;
+            var y = e.clientY - rect.top;
+
+            context.lineTo(x, y);
+            context.stroke();
+            context.beginPath();
+            context.moveTo(x, y);
+        }
+
+        function saveCanvas() {
+            var dataURL = canvas.toDataURL();
+            var gallery = document.getElementById('gallery');
+            var thumbnailDiv = document.createElement('div');
+            thumbnailDiv.classList.add('thumbnail');
+
+            var img = document.createElement('img');
+            img.src = dataURL;
+            thumbnailDiv.appendChild(img);
+
+            var deleteBtn = document.createElement('button');
+            deleteBtn.textContent = '删除';
+            deleteBtn.classList.add('delete-btn');
+            deleteBtn.onclick = function () {
+                gallery.removeChild(thumbnailDiv);
+                removeFromLocalStorage(dataURL);
+            };
+            thumbnailDiv.appendChild(deleteBtn);
+            gallery.appendChild(thumbnailDiv);
+
+            // 保存在localStorage中
+            saveToLocalStorage(dataURL);
+            alert('画布已保存到仓库!');
+        }
+
+        function clearCanvas() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            alert('画布已清除!');
+        }
+
+        function saveToLocalStorage(dataURL) {
+            let savedCanvases = JSON.parse(localStorage.getItem('savedCanvases')) || [];
+            savedCanvases.push(dataURL);
+            localStorage.setItem('savedCanvases', JSON.stringify(savedCanvases));
+        }
+
+        function removeFromLocalStorage(dataURL) {
+            let savedCanvases = JSON.parse(localStorage.getItem('savedCanvases')) || [];
+            savedCanvases = savedCanvases.filter(canvas => canvas !== dataURL);
+            localStorage.setItem('savedCanvases', JSON.stringify(savedCanvases));
+        }
+
+        function loadGallery() {
+            let savedCanvases = JSON.parse(localStorage.getItem('savedCanvases')) || [];
+            savedCanvases.forEach(dataURL => {
+                var gallery = document.getElementById('gallery');
+                var thumbnailDiv = document.createElement('div');
+                thumbnailDiv.classList.add('thumbnail');
+
+                var img = document.createElement('img');
+                img.src = dataURL;
+                thumbnailDiv.appendChild(img);
+
+                var deleteBtn = document.createElement('button');
+                deleteBtn.textContent = '删除';
+                deleteBtn.classList.add('delete-btn');
+                deleteBtn.onclick = function () {
+                    gallery.removeChild(thumbnailDiv);
+                    removeFromLocalStorage(dataURL);
+                };
+                thumbnailDiv.appendChild(deleteBtn);
+                gallery.appendChild(thumbnailDiv);
+            });
+        }
+
+        canvas.addEventListener('mousedown', startPosition);
+        canvas.addEventListener('mouseup', endPosition);
+        canvas.addEventListener('mousemove', draw);
+        document.getElementById('saveBtn').addEventListener('click', saveCanvas);
+        document.getElementById('clearBtn').addEventListener('click', clearCanvas);
+
+        // 页面加载时加载仓库
+        loadGallery();
+    </script>
+
+</body>
+</html>
